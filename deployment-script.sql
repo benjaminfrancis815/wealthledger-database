@@ -46,12 +46,77 @@ $$;
 -- Switch to wealthledger database.
 \c wealthledger;
 
+CREATE TABLE IF NOT EXISTS expense_categories (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(200) UNIQUE NOT NULL
+);
+
+DO $$
+DECLARE
+    inserted_count INT;
+BEGIN
+    WITH inserted AS (
+        INSERT INTO expense_categories (
+            id, 
+            name
+        ) 
+        VALUES
+            (1, 'Others'),
+            (2, 'Transport'),
+            (3, 'Investment'),
+            (4, 'Food'),
+            (5, 'Utilities'),
+            (6, 'Entertaintment'),
+            (7, 'Medicine')
+        ON CONFLICT (id) DO NOTHING
+        RETURNING *
+    )
+    SELECT COUNT(*) INTO inserted_count FROM inserted;
+
+    RAISE NOTICE 'Inserted % record(s) in the expense_categories table.', inserted_count;
+END
+$$;
+
+CREATE TABLE IF NOT EXISTS payment_modes (
+    id BIGINT PRIMARY KEY,
+    name varchar(200) UNIQUE NOT NULL
+);  
+
+DO $$
+DECLARE
+    inserted_count INT;
+BEGIN
+    WITH inserted AS (
+        INSERT INTO payment_modes (
+            id, 
+            name
+        ) 
+        VALUES
+            (1, 'Others'),
+            (2, 'Cash'),
+            (3, 'UPI lite'),
+            (4, 'UPI'),
+            (5, 'Credit card'),
+            (6, 'Chalo wallet'),
+            (7, 'Amazon pay wallet'),
+            (8, 'Food card')
+        ON CONFLICT (id) DO NOTHING
+        RETURNING *
+    )
+    SELECT COUNT(*) INTO inserted_count FROM inserted;
+
+    RAISE NOTICE 'Inserted % record(s) in the payment_modes table.', inserted_count;
+END
+$$;
+
 -- Create table if not exists.
 CREATE TABLE IF NOT EXISTS expenses (
     id BIGSERIAL PRIMARY KEY,
     expense_date DATE NOT NULL,
     amount NUMERIC(12, 2) NOT NULL,
-    description VARCHAR(200) NOT NULL
+    description VARCHAR(200) NOT NULL,
+    expense_category_id BIGINT NOT NULL REFERENCES expense_categories(id),
+    payment_mode_id BIGINT NOT NULL REFERENCES payment_modes(id)
 );
 
 GRANT CONNECT ON DATABASE wealthledger TO wealthledger_app;
