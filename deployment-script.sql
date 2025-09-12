@@ -119,6 +119,46 @@ CREATE TABLE IF NOT EXISTS expenses (
     payment_mode_id BIGINT NOT NULL REFERENCES payment_modes(id)
 );
 
+-- Create table if not exists.
+CREATE TABLE IF NOT EXISTS roles (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(200) UNIQUE NOT NULL
+);
+
+DO $$
+DECLARE
+    inserted_count INT;
+BEGIN
+    WITH inserted AS (
+        INSERT INTO roles (
+            id, 
+            name
+        ) 
+        VALUES
+            (1, 'ADMIN')
+        ON CONFLICT (id) DO NOTHING
+        RETURNING *
+    )
+    SELECT COUNT(*) INTO inserted_count FROM inserted;
+
+    RAISE NOTICE 'Inserted % record(s) in the roles table.', inserted_count;
+END
+$$;
+
+-- Create table if not exists.
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(200) UNIQUE NOT NULL,
+    password VARCHAR(200) NOT NULL
+);
+
+-- Create table if not exists.
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id BIGINT REFERENCES users(id) NOT NULL,
+    role_id BIGINT REFERENCES roles(id) NOT NULL,
+    PRIMARY KEY(user_id, role_id)
+);
+
 GRANT CONNECT ON DATABASE wealthledger TO wealthledger_app;
 
 GRANT USAGE, CREATE ON SCHEMA public TO wealthledger_app;
