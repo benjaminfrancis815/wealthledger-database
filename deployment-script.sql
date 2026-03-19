@@ -98,6 +98,17 @@ CREATE TABLE IF NOT EXISTS payment_modes (
     modified_by BIGINT NOT NULL REFERENCES users(id)
 ); 
 
+-- Create expense_books table if not exists.
+CREATE TABLE IF NOT EXISTS expense_books (
+    id BIGSERIAL PRIMARY KEY,
+    name varchar(200) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by BIGINT NOT NULL REFERENCES users(id),
+    modified_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    modified_by BIGINT NOT NULL REFERENCES users(id),
+    CONSTRAINT expense_books_name_created_by_unique UNIQUE (name, created_by)
+);
+
 -- Create expenses table if not exists.
 CREATE TABLE IF NOT EXISTS expenses (
     id BIGSERIAL PRIMARY KEY,
@@ -106,6 +117,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     description VARCHAR(200) NOT NULL,
     expense_category_id BIGINT NOT NULL REFERENCES expense_categories(id),
     payment_mode_id BIGINT NOT NULL REFERENCES payment_modes(id),
+    expense_book_id BIGINT NOT NULL REFERENCES expense_books(id),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by BIGINT NOT NULL REFERENCES users(id),
     modified_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -283,6 +295,25 @@ BEGIN
 
     RAISE NOTICE 'Inserted % record(s) in the payment_modes table.', inserted_count;
     -- payment_modes table DML operations [END].
+
+    -- expense_books table DML operations [START].
+    WITH inserted AS (
+        INSERT INTO expense_books (
+            id, 
+            name,
+            created_by,
+            modified_by
+        ) 
+        VALUES
+            (1, 'Personal', admin_user_id, admin_user_id),
+            (2, 'Home', admin_user_id, admin_user_id)
+        ON CONFLICT (id) DO NOTHING
+        RETURNING *
+    )
+    SELECT COUNT(*) INTO inserted_count FROM inserted;
+
+    RAISE NOTICE 'Inserted % record(s) in the expense_books table.', inserted_count;
+    -- expense_books table DML operations [END].
 
 END
 $$;
