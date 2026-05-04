@@ -5,8 +5,8 @@
 
 CREATE EXTENSION IF NOT EXISTS dblink;
 
-SET myvars.wealthledger_app_password = :wealthledger_app_password;
-SET myvars.postgres_password = :postgres_password;
+SET myvars.wealthledger_app_password = :'wealthledger_app_password';
+SET myvars.postgres_password = :'postgres_password';
 
 -- Create user if not exists.
 DO $$
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     modified_by BIGINT NOT NULL REFERENCES users(id)
 );
 
-SET myvars.admin_password = :admin_password;
+SET myvars.admin_password = :'admin_password';
 
 DO $$
 DECLARE
